@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#F7F9FC"/>
+  <g stroke="#C9D6EC" stroke-width="4">
+    <path d="M0 128h512M0 192h512M0 256h512M0 320h512M0 384h512"/>
+    <path d="M192 0v512M256 0v512M320 0v512M384 0v512M448 0v512"/>
+  </g>
+  <path d="M112 0v512" stroke="#D93A4E" stroke-width="10"/>
+  <rect x="150" y="300" width="300" height="72" fill="#FFE566"/>
+  <text x="300" y="350" text-anchor="middle" font-family="Georgia, 'Noto Serif', serif" font-weight="700" font-size="250" fill="#1F3FA6">Aa</text>
+</svg>

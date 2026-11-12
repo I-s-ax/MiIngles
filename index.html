@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>MiInglés</title>
+  <meta name="description" content="Cuaderno para aprender inglés: gramática, pronunciación, oraciones, cuentos y diccionario.">
+  <meta name="theme-color" content="#1F3FA6">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="#/" aria-label="MiInglés, ir al índice">Mi<span lang="en">Inglés</span></a>
+    <a class="back" id="back" href="#/" hidden>Volver</a>
+  </header>
+
+  <main id="view" tabindex="-1"></main>
+
+  <nav class="tabs" aria-label="Secciones">
+    <a href="#/gramatica" data-tab="gramatica">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3V4zm0 13a3 3 0 0 1 3-3h11M9 8h6"/></svg>
+      <span>Gramática</span>
+    </a>
+    <a href="#/pronunciacion" data-tab="pronunciacion">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 1 3 3v5a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zm-6 8a6 6 0 0 0 12 0M12 17v4"/></svg>
+      <span>Pronunciar</span>
+    </a>
+    <a href="#/oraciones" data-tab="oraciones">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h7v5H4zm9 0h7v5h-7zM4 13h4v5H4zm6 0h10v5H10z"/></svg>
+      <span>Oraciones</span>
+    </a>
+    <a href="#/cuentos" data-tab="cuentos">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6c-2-1.500-5-2-8-1.500v13c3-.5 6 0 8 1.500 2-1.500 5-2 8-1.500v-13c-3-.5-6 0-8 1.500zm0 0v13"/></svg>
+      <span>Cuentos</span>
+    </a>
+    <a href="#/diccionario" data-tab="diccionario">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.500 4a6.500 6.500 0 1 1 0 13 6.500 6.500 0 0 1 0-13zm5 11.500L20 20"/></svg>
+      <span>Diccionario</span>
+    </a>
+  </nav>
+
+  <dialog id="sheet" class="sheet" aria-label="Palabra"></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <noscript><p class="page">MiInglés necesita JavaScript para funcionar.</p></noscript>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
