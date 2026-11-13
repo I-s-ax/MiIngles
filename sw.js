@@ -1,6 +1,6 @@
 // Guarda la app en el teléfono para que funcione sin internet.
 // Sube el número de versión cada vez que cambies archivos.
-const CACHE = 'miingles-v1';
+const CACHE = 'miingles-v2';
 const FILES = [
   './', 'index.html', 'css/styles.css', 'manifest.webmanifest',
   'js/app.js', 'js/data/grammar.js', 'js/data/practice.js', 'js/data/dictionary.js',

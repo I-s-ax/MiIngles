@@ -1,6 +1,6 @@
 # MiInglés
 
-Aplicación móvil para aprender inglés desde el español. Es una app web instalable (PWA): se abre en el navegador del teléfono, se agrega a la pantalla principal y después funciona sin internet.
+Aplicación móvil para aprender inglés desde el español. Se instala como APK en Android o se usa desde el navegador como app web (PWA). Funciona sin internet.
 
 ## Qué incluye
 
@@ -12,7 +12,18 @@ Aplicación móvil para aprender inglés desde el español. Es una app web insta
 
 El avance se guarda solo en el teléfono (`localStorage`). No hay cuentas ni servidor.
 
-## Cómo usarla en el teléfono
+## Instalar el APK en Android
+
+1. Abre [Releases → MiInglés para Android](https://github.com/I-s-ax/MiIngles/releases/tag/apk) en el teléfono y descarga `MiIngles.apk`.
+2. Ábrelo y permite «instalar apps desconocidas» para tu navegador o gestor de archivos.
+
+GitHub compila el APK solo con cada cambio en `main` (pestaña **Actions**, flujo «Compilar APK»), y la versión nueva se instala encima de la anterior sin perder tu avance. Dentro del APK, la voz y el micrófono usan los servicios de Android (texto a voz y reconocimiento de voz de Google).
+
+El proyecto Android está en `android/`: es un WebView que carga la app web desde el propio APK. Está firmado con la clave de depuración `android/debug.keystore`, que es pública; sirve para uso personal, no para publicar en Play Store.
+
+Para compilarlo en una PC con Android SDK y Gradle 8.9: `gradle -p android assembleDebug`.
+
+## Usarla sin instalar (navegador)
 
 ### Opción 1: GitHub Pages
 
@@ -47,13 +58,15 @@ La búsqueda en línea envía la palabra consultada a [Free Dictionary API](http
 
 ```
 index.html              pantalla base y barra de navegación
-css/styles.css          diseño (cuaderno claro, pizarrón oscuro)
+css/styles.css          diseño (tema oscuro, un color por sección)
 js/app.js               navegación y las cinco secciones
 js/data/grammar.js      lecciones y quiz
 js/data/practice.js     oraciones, sonidos y cuentos
 js/data/dictionary.js   diccionario y verbos irregulares
 sw.js                   guarda la app para usarla sin conexión
 manifest.webmanifest    datos para instalarla
+android/                proyecto Android que empaqueta la app en un APK
+.github/workflows/      compilación automática del APK
 ```
 
 No usa librerías ni paso de compilación.

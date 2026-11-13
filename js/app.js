@@ -35,6 +35,11 @@ function icon(path) {
   return svg;
 }
 const ICON = {
+  gramatica: 'M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3V4zm0 13a3 3 0 0 1 3-3h11M9 8h6',
+  pronunciacion: 'M12 3a3 3 0 0 1 3 3v5a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zm-6 8a6 6 0 0 0 12 0M12 17v4',
+  oraciones: 'M4 6h7v5H4zm9 0h7v5h-7zM4 13h4v5H4zm6 0h10v5H10z',
+  cuentos: 'M12 6c-2-1.5-5-2-8-1.5v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5v-13c-3-.5-6 0-8 1.5zm0 0v13',
+  diccionario: 'M10.5 4a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13zm5 11.5L20 20',
   speaker: 'M4 9v6h4l5 4V5L8 9H4zm12.500-.500a5 5 0 0 1 0 7M19 6a9 9 0 0 1 0 12',
   mic: 'M12 3a3 3 0 0 1 3 3v5a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zm-6 8a6 6 0 0 0 12 0M12 17v4'
 };
@@ -74,6 +79,8 @@ function addOnce(list, value) {
 
 /* ---------- Voz: escuchar y hablar ---------- */
 
+// Dentro del APK, la voz y el micrófono los maneja Android por este puente.
+const native = window.AndroidBridge;
 const synth = window.speechSynthesis;
 let voices = [];
 function loadVoices() { voices = synth ? synth.getVoices() : []; }
@@ -82,7 +89,15 @@ if (synth) {
   if (synth.addEventListener) synth.addEventListener('voiceschanged', loadVoices);
 }
 
+function stopSpeech() {
+  if (native) native.stopSpeaking(); else if (synth) synth.cancel();
+}
+
 function speak(text, slow) {
+  if (native) {
+    if (!native.speak(text, !!slow)) toast('La voz en inglés del teléfono no está lista. Revisa «Salida de texto a voz» en los ajustes.');
+    return;
+  }
   if (!synth) { toast('Este navegador no puede leer en voz alta.'); return; }
   synth.cancel();
   const u = new SpeechSynthesisUtterance(text);
@@ -99,9 +114,17 @@ function sayButton(text, label = 'Escuchar') {
 }
 
 const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const canListen = Boolean(native || Recognition);
 
 /** Escucha una frase en inglés y devuelve las alternativas que entendió el navegador. */
 function listen() {
+  if (native) {
+    return new Promise((resolve, reject) => {
+      window.__heard = resolve;
+      window.__heardError = reject;
+      native.listen();
+    });
+  }
   return new Promise((resolve, reject) => {
     const r = new Recognition();
     r.lang = 'en-US';
@@ -119,7 +142,8 @@ const LISTEN_ERRORS = {
   'service-not-allowed': 'Permite el micrófono en el navegador para practicar.',
   'no-speech': 'No se escuchó nada. Acerca el teléfono e intenta otra vez.',
   'network': 'El reconocimiento de voz necesita internet.',
-  'audio-capture': 'No se encontró un micrófono.'
+  'audio-capture': 'No se encontró un micrófono.',
+  'unavailable': 'Este teléfono no tiene reconocimiento de voz activo. Instala o activa la app de Google.'
 };
 
 /* ---------- Diccionario: búsqueda ---------- */
@@ -211,19 +235,32 @@ function page(title, lead, ...content) {
 
 function home() {
   const lessonsDone = GRAMMAR.filter(g => state.grammar[g.id] === g.quiz.length).length;
-  const rows = [
-    ['#/gramatica', 'Gramática', 'Reglas explicadas en español, con ejemplos y un quiz', `${lessonsDone} de ${GRAMMAR.length}`],
-    ['#/pronunciacion', 'Pronunciación', 'Escucha, repite y deja que el teléfono te entienda', `${state.sounds.length} de ${SOUNDS.length}`],
-    ['#/oraciones', 'Crear oraciones', 'Ordena las palabras o escribe tus propias frases', `${state.sentences.length} de ${SENTENCES.length}`],
-    ['#/cuentos', 'Traducir cuentos', 'Cuentos cortos para traducir oración por oración', `${state.stories.length} de ${STORIES.length}`],
-    ['#/diccionario', 'Diccionario', `${DICT.length} palabras sin conexión y búsqueda en línea`, state.saved.length === 1 ? '1 guardada' : `${state.saved.length} guardadas`]
+  const cards = [
+    ['gramatica', 'Gramática', 'Reglas en español, ejemplos y quiz', lessonsDone, GRAMMAR.length],
+    ['pronunciacion', 'Pronunciación', 'Escucha, repite y que el teléfono te entienda', state.sounds.length, SOUNDS.length],
+    ['oraciones', 'Crear oraciones', 'Ordena palabras o escribe tus frases', state.sentences.length, SENTENCES.length],
+    ['cuentos', 'Traducir cuentos', 'Traduce oración por oración', state.stories.length, STORIES.length]
   ];
-  return page('Tu cuaderno de inglés', 'Elige por dónde empezar. Tu avance se guarda en este teléfono.',
-    h('ul', { class: 'index' }, rows.map(([href, name, sub, mark]) =>
-      h('li', null, h('a', { href },
+  const done = cards.reduce((n, c) => n + c[3], 0);
+  const total = cards.reduce((n, c) => n + c[4], 0);
+  const bar = (n, of) => h('div', { class: 'progress' }, h('i', { style: `width:${Math.round(100 * n / of)}%` }));
+  return page('¿Qué practicamos hoy?', null,
+    h('div', { class: 'overall' },
+      h('p', null, h('b', null, `${Math.round(100 * done / total)}%`), ' de avance'),
+      bar(done, total),
+      h('p', { class: 'note', style: 'margin-top:8px' }, `${done} de ${total} actividades. Se guarda en este teléfono.`)),
+    h('div', { class: 'hub' },
+      cards.map(([id, name, sub, n, of]) => h('a', { href: `#/${id}`, 'data-s': id },
+        h('span', { class: 'ic' }, icon(ICON[id])),
         h('span', { class: 'name' }, name),
-        h('span', { class: 'mark' }, mark),
-        h('span', { class: 'sub' }, sub))))));
+        h('span', { class: 'sub' }, sub),
+        h('span', { class: 'count' }, `${n} de ${of}`),
+        bar(n, of))),
+      h('a', { href: '#/diccionario', 'data-s': 'diccionario', class: 'wide' },
+        h('span', { class: 'ic' }, icon(ICON.diccionario)),
+        h('span', { class: 'name' }, 'Diccionario'),
+        h('span', { class: 'sub' }, `${DICT.length} palabras sin conexión y búsqueda en línea`),
+        h('span', { class: 'count' }, state.saved.length === 1 ? '1 palabra guardada' : `${state.saved.length} palabras guardadas`))));
 }
 
 /* Gramática */
@@ -307,7 +344,7 @@ function soundPage(id) {
     const heard = h('div', { class: 'heard', role: 'status' });
     const mic = h('button', { class: 'btn small', type: 'button' }, icon(ICON.mic), 'Decirla');
     mic.addEventListener('click', async () => {
-      if (!Recognition) {
+      if (!canListen) {
         heard.textContent = 'Este navegador no reconoce voz. Usa Chrome en Android para que el teléfono te escuche.';
         return;
       }
@@ -509,7 +546,7 @@ function storyPage(id) {
     body.append(
       h('div', { class: 'actions' },
         h('button', { class: 'btn ghost', type: 'button', onclick: () => speak(st.s.map(x => x[0]).join(' ')) }, icon(ICON.speaker), 'Escuchar el cuento'),
-        h('button', { class: 'btn ghost', type: 'button', onclick: () => synth && synth.cancel() }, 'Detener')),
+        h('button', { class: 'btn ghost', type: 'button', onclick: stopSpeech }, 'Detener')),
       h('div', { class: 'reading' }, st.s.map(([en, es]) => {
         const tr = h('p', { class: 'tr', hidden: true }, es);
         return h('div', null,
@@ -696,11 +733,12 @@ const ROUTES = {
 };
 
 function render() {
-  if (synth) synth.cancel();
+  stopSpeech();
   const [section = '', arg] = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent);
   const route = ROUTES[section];
   const node = !route ? notFound() : arg && route[1] ? route[1](arg) : route[0]();
   view.replaceChildren(node);
+  document.body.dataset.s = section || 'inicio';
   document.querySelectorAll('.tabs a').forEach(a => {
     if (a.dataset.tab === section) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
   });
@@ -719,6 +757,6 @@ window.addEventListener('hashchange', () => {
 });
 render();
 
-if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+if (!native && 'serviceWorker' in navigator && location.protocol !== 'file:') {
   navigator.serviceWorker.register('sw.js').catch(() => { /* la app funciona igual, solo sin modo sin conexión */ });
 }
